@@ -576,7 +576,7 @@ def create_embed_func(bb: relax.BlockBuilder, config: LlamaConfig) -> None:
         with bb.dataflow():
             embs = model(input_ids)
             gv = bb.emit_output(embs)
-        bb.emit_func_output(gv, [input_ids])
+        bb.emit_func_output(gv, [input_ids] + model.parameters())
     mod = bb.get()
     gv = mod.get_global_var("embed")
     bb.update_func(gv, mod[gv].with_attr("num_input", 1))
@@ -715,6 +715,7 @@ def get_model(args, hf_config):
             config.max_sequence_length = max_seq_len
 
         bb = relax.BlockBuilder()
+        create_embed_func(bb, config)
         pidx2pname = create_encoding_func(bb, config)
         create_decoding_func(bb, config)
         create_kv_cache_func(bb, config)
@@ -726,7 +727,6 @@ def get_model(args, hf_config):
             stop_tokens=[2],
             add_prefix_space=False,
         )
-        create_embed_func(bb, config)
 
         mod = bb.get()
         for gv in mod.functions:
