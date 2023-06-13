@@ -249,6 +249,7 @@ def mod_transform_before_build(
         ]
     else:
         model_names = [
+            "embed",
             "prefill",
             "decode",
             "create_kv_cache",
